@@ -1,14 +1,14 @@
 ---
 layout:     post
-title:      "Hello 2015"
+title:      "JMM中的Happen before"
 subtitle:   " \"Hello World, Hello Blog\""
-date:       2015-01-29 12:00:00
-author:     "Hux"
+date:       2016-11-17 12:00:00
+author:     "Jihaixiao"
 header-img: "img/post-bg-2015.jpg"
 catalog: true
 tags:
-    - 生活
     - Java
+    - 并发编程
 ---
 
 > “Yeah It's on. ”
@@ -16,7 +16,7 @@ tags:
 
 ## 前言
 
-Hux 的 Blog 就这么开通了。
+JMM(Java Memory Model）对于理解并发编程有很重要的帮助。
 
 [跳过废话，直接看技术实现 ](#build) 
 
@@ -35,7 +35,7 @@ Hux 的 Blog 就这么开通了。
 
 ## 正文
 
-接下来说说搭建这个博客的技术细节。  
+JMM java内存模型分为工作内存和主内存。
 
 正好之前就有关注过 [GitHub Pages](https://pages.github.com/) + [Jekyll](http://jekyllrb.com/) 快速 Building Blog 的技术方案，非常轻松时尚。
 
