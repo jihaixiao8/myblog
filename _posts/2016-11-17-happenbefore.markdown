@@ -31,6 +31,7 @@ JMM在程序猿的需求跟编译器，处理器之间的需求做了一个比�
   ​
 
 
+
 <p id = "build"></p>
 ---
 
@@ -64,7 +65,7 @@ double c = a * b;           //C
 
 入下图所示：
 
-![](http://ogu2tysfa.bkt.clouddn.com/reorder1.jpg)
+![](http://ogu2tysfa.bkt.clouddn.com/reorder4.jpg)
 
 
 
