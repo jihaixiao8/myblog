@@ -64,5 +64,8 @@ double c = a * b;           //C
 
 入下图所示：
 
-![](http://ogu2tysfa.bkt.clouddn.com/reorder.jpg)
+![](http://ogu2tysfa.bkt.clouddn.com/reorder1.jpg)
 
+
+
+黄色区域是JMM的实现，程序猿只关注happen-before的规则，并不关心实现。这种实现为程序猿提供了足够的内存可见性，并且对编译器和处理器的约束尽可能的小。（编译器和处理器只要不改变程序执行结果，JMM不会限制它们的优化），但是有些JMM保证的内存可见性，并不一定真实存在，例如上面代码的A happen-before B。
