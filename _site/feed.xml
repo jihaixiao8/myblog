@@ -3,45 +3,76 @@
   <channel>
     <title>JiHaiXiao Blog</title>
     <description>关于前端与设计、黑客与画家 | 黄玄，Web &amp; Mobile Lover，Front-End Engineer，UX Designer | 这里是 @Hux黄玄 的个人博客，与你一起发现更大的世界。</description>
-    <link>http://localhost:4000/</link>
-    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 17 Nov 2016 22:52:56 +0800</pubDate>
-    <lastBuildDate>Thu, 17 Nov 2016 22:52:56 +0800</lastBuildDate>
-    <generator>Jekyll v3.3.1</generator>
+    <link>http://jihaixiao.com/</link>
+    <atom:link href="http://jihaixiao.com/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Fri, 18 Nov 2016 17:56:05 +0800</pubDate>
+    <lastBuildDate>Fri, 18 Nov 2016 17:56:05 +0800</lastBuildDate>
+    <generator>Jekyll v3.1.6</generator>
     
       <item>
-        <title>JMM中的Happen before</title>
+        <title>JMM中的happen before</title>
         <description>&lt;blockquote&gt;
   &lt;p&gt;“Yeah It’s on. ”&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;h2 id=&quot;section&quot;&gt;前言&lt;/h2&gt;
 
-&lt;p&gt;JMM(Java Memory Model）对于理解并发编程有很重要的帮助。&lt;/p&gt;
+&lt;p&gt;JMM(Java Memory Model）对于理解并发编程有很重要的帮助，而happen-before是JMM的核心。&lt;/p&gt;
 
 &lt;p&gt;&lt;a href=&quot;#build&quot;&gt;跳过废话，直接看技术实现 &lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;2015 年，Hux 总算有个地方可以好好写点东西了。&lt;/p&gt;
+&lt;p&gt;JMM在程序猿的需求跟编译器，处理器之间的需求做了一个比较折中的选择。&lt;/p&gt;
 
-&lt;p&gt;作为一个程序员， Blog 这种轮子要是挂在大众博客程序上就太没意思了。一是觉得大部分 Blog 服务都太丑，二是觉得不能随便定制不好玩。之前因为太懒没有折腾，结果就一直连个写 Blog 的地儿都没有。&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;程序猿想让JMM能够提供一个强一致内存模型，这样编程越方便。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;编译器，处理器想让JMM对自己的限制越少越好，这样它们就能尽可能的用各种手段去优化代码，希望JMM提供一个弱一致模型。&lt;/p&gt;
 
-&lt;p&gt;在玩了一段时间知乎之后，答题的快感又激起了我开博客的冲动。之前的&lt;a href=&quot;http://huangxuan.me/portfolio&quot;&gt;个人网站&lt;/a&gt;是作品集形式的（现在集成进来了），并不适合用来写博文，一不做二不休，花一天搞一个吧！&lt;/p&gt;
+    &lt;p&gt;​&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
 
 &lt;p id=&quot;build&quot;&gt;&lt;/p&gt;
 &lt;hr /&gt;
 
 &lt;h2 id=&quot;section-1&quot;&gt;正文&lt;/h2&gt;
 
-&lt;p&gt;JMM java内存模型分为工作内存和主内存。&lt;/p&gt;
+&lt;p&gt;JMM把happen-before要求禁止的重排序分为两类：&lt;/p&gt;
 
-&lt;p&gt;每个线程有自己工作内存，&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;会改变程序结果的重排序。&lt;/li&gt;
+  &lt;li&gt;不会改变程序执行结果的重排序。&lt;/li&gt;
+&lt;/ul&gt;
 
-&lt;p&gt;—— Hux 后记于 2015.10&lt;/p&gt;
+&lt;p&gt;JMM对于这两种重排序，采用了不通的处理策略：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;对于会改变程序执行结果的重排序，JMM要求编译器和处理器必须禁止这种重排序。&lt;/li&gt;
+  &lt;li&gt;对于不会改变程序执行结果的重排序，JMM对编译器和处理器不作要求，换句话说，就是它默许这种重排序。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;例如下面这段代码：&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;double&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;               &lt;span class=&quot;c1&quot;&gt;//A&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;double&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;               &lt;span class=&quot;c1&quot;&gt;//B&lt;/span&gt;
+&lt;span class=&quot;kt&quot;&gt;double&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;           &lt;span class=&quot;c1&quot;&gt;//C&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的代码有3个happen-before关系：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;A happen-before B&lt;/li&gt;
+  &lt;li&gt;B happen-before C&lt;/li&gt;
+  &lt;li&gt;A happen-before C&lt;/li&gt;
+&lt;/ul&gt;
 
 </description>
         <pubDate>Thu, 17 Nov 2016 20:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2016/11/17/happenbefore/</link>
-        <guid isPermaLink="true">http://localhost:4000/2016/11/17/happenbefore/</guid>
+        <link>http://jihaixiao.com/2016/11/17/happenbefore/</link>
+        <guid isPermaLink="true">http://jihaixiao.com/2016/11/17/happenbefore/</guid>
         
         <category>Java</category>
         
@@ -61,8 +92,8 @@
 &lt;p&gt;终于可以咯！！！&lt;/p&gt;
 </description>
         <pubDate>Thu, 17 Nov 2016 00:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2016/11/17/firstblog/</link>
-        <guid isPermaLink="true">http://localhost:4000/2016/11/17/firstblog/</guid>
+        <link>http://jihaixiao.com/2016/11/17/firstblog/</link>
+        <guid isPermaLink="true">http://jihaixiao.com/2016/11/17/firstblog/</guid>
         
         <category>Java</category>
         
@@ -140,8 +171,8 @@
 
 </description>
         <pubDate>Thu, 29 Jan 2015 20:00:00 +0800</pubDate>
-        <link>http://localhost:4000/2015/01/29/hello-2015/</link>
-        <guid isPermaLink="true">http://localhost:4000/2015/01/29/hello-2015/</guid>
+        <link>http://jihaixiao.com/2015/01/29/hello-2015/</link>
+        <guid isPermaLink="true">http://jihaixiao.com/2015/01/29/hello-2015/</guid>
         
         <category>生活</category>
         

@@ -62,3 +62,7 @@ double c = a * b;           //C
 * B happen-before C
 * A happen-before C
 
+入下图所示：
+
+![](http://ogu2tysfa.bkt.clouddn.com/reorder.jpg)
+
