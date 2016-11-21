@@ -77,3 +77,17 @@ double c = a * b;           //C
 
 1. 如果一个操作happen-before另一个操作，那么第一个操作的执行结果将对第二个操作可见，并且第一个操作的执行顺序在第二个操作之前。
 2. **如果两个操作存在happen-before关系，并不意味着java平台的具体实现必须要按照happen-before关系执行的顺序执行**。如果重排序之后的执行结果，与按happen-before关系执行的结果一致，那么这种重排序并不非法（也就是说，JMM允许这种重排序）。
+
+上面的第一条是jmm对程序员的承诺，例如a happen-before b，内存模型将向程序员保证，a的操作结果对b可见，并且a的执行顺序排在b之前，当然这只是JMM对程序员的保证。
+
+第二条是JMM对编译器和处理器重排序的约束规则。JMM一直在遵从一个原则：只要别改变程序的执行结果（单线程程序和正确同步的程序），编译器和处理器随便优化，JMM这么做是因为程序员只关心程序执行时语义不要被改变，对两个操作实际上是否重排序了不关心。
+
+### happen-before原则
+
+1. 程序顺序规则：一个线程中的每个操作，happen-before于被线程中的任意后续操作。
+2. 监视器锁规则：对一个锁的解锁，happen-before于随后对这个锁的加锁。
+3. volatile变量规则：对一个voltatile变量的写，happen-before于任意后续对这个volatile的读。
+4. 传递性：如果A happen-before B，且B happen-before C，那么A happen-before C。
+5. start()规则：如果线程A 执行操作 threadB.start()，那么线程A的ThreadB.start()操作happen-before于线程B中的任意操作。
+6. join规则：如果线程A执行threadB.join()操作并成功返回，那么线程B中的任意操作happen-before于线程A从threadB.join()操作成功返回。
+
