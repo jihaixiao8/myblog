@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "JMM中的happen before"
-subtitle:   " \"Hello World, Hello Blog\""
+subtitle:   " \"help to understand concurrency programming \""
 date:       2016-11-17 12:00:00
 author:     "Jihaixiao"
 header-img: "img/post-bg-2015.jpg"
