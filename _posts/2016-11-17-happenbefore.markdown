@@ -86,8 +86,8 @@ double c = a * b;           //C
 
 1. 程序顺序规则：一个线程中的每个操作，happen-before于被线程中的任意后续操作。
 2. 监视器锁规则：对一个锁的解锁，happen-before于随后对这个锁的加锁。
-3. volatile变量规则：对一个voltatile变量的写，happen-before于任意后续对这个volatile的读。
+3. volatile变量规则：对一个volatile变量的写，happen-before于任意后续对这个volatile的读。
 4. 传递性：如果A happen-before B，且B happen-before C，那么A happen-before C。
 5. start()规则：如果线程A 执行操作 threadB.start()，那么线程A的ThreadB.start()操作happen-before于线程B中的任意操作。
-6. join规则：如果线程A执行threadB.join()操作并成功返回，那么线程B中的任意操作happen-before于线程A从threadB.join()操作成功返回。
+6. join()规则：如果线程A执行threadB.join()操作并成功返回，那么线程B中的任意操作happen-before于线程A从threadB.join()操作成功返回。
 
