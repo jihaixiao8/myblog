@@ -1,0 +1,225 @@
+---
+layout:     post
+title:      "Spring MVC 4.X 教程（一）"
+subtitle:   " \"how to run spring mvc based on annotation \""
+date:       2016-11-24 00:00:00
+author:     "Jihaixiao"
+header-img: "img/post-bg-2015.jpg"
+catalog: true
+tags:
+    - Java
+    - Spring
+---
+
+> “Yeah It's on. ”
+
+
+## 前言
+
+现在开发正在趋于精简化，像基于xml配置的框架显得略重，基于注解跟JAVA配置越来越流行了。
+
+Spring MVC 4.X 基于注解和java的配置用起来非常爽快，不需要web.xml和applicationContext.xml，下面我给出第一个简单的小例子。
+
+## 正文
+
+现在开始搭建第一个demo（这里我们使用jsp作为页面展示）:
+
+#### 1.增加相关的pom依赖
+
+```xml
+<!--spring mvc -->
+
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-webmvc</artifactId>
+    <version>4.2.5.RELEASE</version>
+</dependency>
+```
+
+除了Spring 相关外，其他依赖：
+
+```xml
+<dependency>
+    <groupId>javax</groupId>
+    <artifactId>javaee-web-api</artifactId>
+    <version>7.0</version>
+    <scope>provided</scope>
+</dependency>
+
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>jstl</artifactId>
+    <version>1.2</version>
+</dependency>
+
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>javax.servlet-api</artifactId>
+    <version>3.1.0</version>
+    <scope>provided</scope>
+</dependency>
+
+<dependency>
+    <groupId>javax.servlet.jsp</groupId>
+    <artifactId>jsp-api</artifactId>
+    <version>2.2</version>
+    <scope>provided</scope>
+</dependency>
+
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-tx</artifactId>
+    <version>4.2.5.RELEASE</version>
+</dependency>
+```
+
+maven插件配置：
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>2.3.2</version>
+            <configuration>
+                <source>1.8</source>
+                <target>1.8</target>
+            </configuration>
+        </plugin>
+
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-war-plugin</artifactId>
+            <version>2.3</version>
+            <configuration>
+                <failOnMissingWebXml>false</failOnMissingWebXml>
+            </configuration>
+        </plugin>
+    </plugins>
+    <finalName>springmvc-web</finalName>
+</build>
+```
+
+#### 2.Spring MVC 配置
+
+```java
+package com.jd.jhx.mvc.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
+import org.springframework.web.servlet.view.JstlView;
+
+/**
+ * Created by jihaixiao on 2016/11/23.
+ */
+
+
+@Configuration
+@EnableWebMvc
+@ComponentScan("com.jd.jhx.mvc")
+public class MyMvcConfig {
+
+    @Bean
+    public InternalResourceViewResolver viewResolver(){
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/WEB-INF/classes/view/");
+        viewResolver.setSuffix(".jsp");
+        viewResolver.setViewClass(JstlView.class);
+        return viewResolver;
+    }
+
+}
+```
+
+* 这个类主要替代曾经的springmvc.xml，InternalResourceViewResolver主要是用来接收model,request,response对象，来渲染视图。
+* view.setPrefix只所以不是按开发目录，是因为我们看到的页面效果是运行时而不是开发时的代码，运行时我们的页面会被自动编译到/WEB-INF/classes/view/去。
+
+#### 3.web配置
+
+```java
+package com.jd.jhx.mvc.web;
+
+import com.jd.jhx.mvc.config.MyMvcConfig;;
+import org.springframework.web.WebApplicationInitializer;
+import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
+import org.springframework.web.servlet.DispatcherServlet;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRegistration;
+
+/**
+ * Created by jihaixiao on 2016/11/23.
+ */
+public class WebInitializer implements WebApplicationInitializer{
+    @Override
+    public void onStartup(ServletContext servletContext) throws ServletException {
+        AnnotationConfigWebApplicationContext ctx = new AnnotationConfigWebApplicationContext();
+        ctx.register(MyMvcConfig.class);
+        ctx.setServletContext(servletContext);
+        ServletRegistration.Dynamic servlet = servletContext.addServlet("dispatcher",new DispatcherServlet(ctx));
+        servlet.addMapping("/");
+        servlet.setLoadOnStartup(1);
+
+    }
+}
+```
+
+* WebApplicationInitializer是Spring提供用来配置Servlet3.0+配置的接口，从而实现 **替代web.xml** 的位置，实现此接口将会自动被SpringServletContainerInitializer(用来启动Servlet3.0容器) 获取到。
+* 上面再start的时候会把SpringMVC的配置register到WebApplicationContext里，然后将WebApplicationContxt与ServletContext关联。
+* 注册了一个名叫dispatcher  的 DispatcherServlet实例。
+
+#### 4.增加测试页面
+
+```html
+<%@page language="java" contentType="text/html; UTF-8" pageEncoding="UTF-8" %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    welcom to Spring MVC World!
+</body>
+</html>
+```
+
+在 **src/main/resources** 目录下新建一个view目录，把一个测试页面index.jsp放进去（Spring Boot都是放这个目录下的，提前熟悉下）。
+
+#### 5.编写控制器（Controller）
+
+无需多言，这个都很熟悉了。
+
+```java
+package com.jd.jhx.mvc.controller;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+/**
+ * Created by jihaixiao on 2016/11/23.
+ */
+
+@Controller
+public class HelloController {
+
+    @RequestMapping("/index")
+    public String hello(){
+        return "index";
+    }
+}
+```
+
+#### 6.部署tomcat，访问
+
+打包应用，部署到tomcat，然后访问http://localhost:8080/index,             **so easy!!!**
+
+
+
+
+
