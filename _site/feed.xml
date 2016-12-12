@@ -5,9 +5,177 @@
     <description>关于前端与设计、黑客与画家 | 黄玄，Web &amp; Mobile Lover，Front-End Engineer，UX Designer | 这里是 @Hux黄玄 的个人博客，与你一起发现更大的世界。</description>
     <link>http://jihaixiao.com/</link>
     <atom:link href="http://jihaixiao.com/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 24 Nov 2016 17:11:24 +0800</pubDate>
-    <lastBuildDate>Thu, 24 Nov 2016 17:11:24 +0800</lastBuildDate>
+    <pubDate>Mon, 12 Dec 2016 18:10:53 +0800</pubDate>
+    <lastBuildDate>Mon, 12 Dec 2016 18:10:53 +0800</lastBuildDate>
     <generator>Jekyll v3.1.6</generator>
+    
+      <item>
+        <title>ReentrantLock源码解析</title>
+        <description>&lt;h2 id=&quot;section&quot;&gt;前言&lt;/h2&gt;
+
+&lt;p&gt;这篇笔记都是自己根据JDK源码自己理解的，希望有人能看到，然后跟我探讨下，不一定理解的就好。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;正文&lt;/h2&gt;
+
+&lt;h4 id=&quot;reentrantlock&quot;&gt;ReentrantLock简介&lt;/h4&gt;
+
+&lt;p&gt;这是jdk1.5 并发大师Doug Lea 增加的一个锁工具，它可以替代synchronized，并且它还具有synchronized不具备的功能，例如可中断锁，定时锁等。&lt;/p&gt;
+
+&lt;p&gt;ReetrantLock同时也是可重入的，而且它有两种形态：公平锁和非公平锁。简单说下这俩概念：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;公平锁：在线程竞争锁过程中，只有一个会竞争到锁，那么其他线程都会阻塞，当锁被释放时，其他线程才可被唤醒，进入临界区，那么如果下一个进入临界区的线程跟当时阻塞顺序有关的锁，就叫公平锁。阻塞队列依照FIFO队列的形式，先阻塞的，第一个被唤醒，进入临界区。&lt;/li&gt;
+  &lt;li&gt;非公平锁：锁释放的时候不会按照阻塞的顺序去唤醒下一个线程，进入临界区，而是全部唤醒，让线程去竞争，成功获取到锁的进入临界区，不公平的地方就是在于不会依仗上一次的状态，还是需要自己去争取。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;ReentrantLock 默认是非公平模式，可以看它提供的构造器：&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ReentrantLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;sync&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NonfairSync&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;ReentrantLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fair&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;sync&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;fair&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FairSync&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NonfairSync&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;默认构造器会 构造一个NofairSync对象（非公平锁同步器），你也可以自己传入fair属性来决定使用哪种锁。这个Sync就是并发工具类的核心，一切都是围绕它来做的。&lt;/p&gt;
+
+&lt;h4 id=&quot;aqs&quot;&gt;AQS(抽象队列同步器简介)&lt;/h4&gt;
+
+&lt;p&gt;可以看一下ReentrantLock的源码，会发现，它的核心就是一个Sync对象，那么这个对象是什么呢？再看，Sync这个内部类 实现了AbstractQueuedSynchronizer 类，这才是核心。&lt;/p&gt;
+
+&lt;p&gt;AbstractQueuedSynchronized ，抽象队列同步器，顾名思义，就是一个抽象类，使用了模板方法模式，为继承它的子类提供了一系列可以自己定制的模板方法，同时它内部又提供了一个int类型的同步状态state和一个FIFO双向队列（链表实现）：当前线程获取同步状态失败时，同步器会将当前线程以及等待状态等信息构造成一个节点，并将其加入队列，同时阻塞当前线程，当同步状态释放时，会把首节点的线程唤醒，使其再次尝试获取同步状态。&lt;/p&gt;
+
+&lt;p&gt;简而言之，就是它提供给你一个同步状态，用来协调线程，还提供给你一个FIFO阻塞队列，用来存放阻塞的线程信息，这俩AQS替你实现了，你就可以用它来自己做一些线程同步类啊，自己定制锁了。&lt;/p&gt;
+
+&lt;h6 id=&quot;state&quot;&gt;1：同步状态state&lt;/h6&gt;
+
+&lt;p&gt;看AQS的源码发现如下，它的3个重要属性：&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cm&quot;&gt;/**
+* 同步阻塞队列的头结点,volatile修饰，确保对头结点的修改对
+* 所有线程可见。
+*/&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;transient&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;volatile&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Node&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/**
+ *	同步阻塞队列的尾节点，volatile修饰，确保对尾节点的修改对所有
+ * 	线程可见，只会在调用enq方法增加新的等待节点的时候才会修改尾节点。
+ */&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;transient&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;volatile&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Node&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;tail&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/**
+ * 	同步状态，非常重要，volatile修饰，确保对它的修改对所有线程可见，线程之间通过
+ *	修改它的状态来实现阻塞，唤醒等状态。
+ */&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;volatile&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;state同步状态AQS提供了3个方法来操作它：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;getState():该方法不会被重写，获取同步状态，在多线程下一定能获取到最新的（volatile的内存语义）&lt;/p&gt;
+
+    &lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;getState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;setState(int newState):该方法不会被重写，设置同步状态，在多线程下，调用该方法设置state以后其他线程能够立即可见（volatile写的内存语义）&lt;/p&gt;
+
+    &lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;setState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;newState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;state&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;newState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;compareAndSetState(int expect,int update):该方法不会被重写，CAS设置当前状态，该方法能够保证设置的原子性。&lt;/p&gt;
+
+    &lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;protected&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;boolean&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;compareAndSetState&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;expect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;update&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c1&quot;&gt;// See below for intrinsics setup to support this&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;unsafe&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;compareAndSwapInt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stateOffset&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;expect&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;update&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h6 id=&quot;aqs-1&quot;&gt;2：AQS提供的模板方法&lt;/h6&gt;
+
+</description>
+        <pubDate>Mon, 12 Dec 2016 08:00:00 +0800</pubDate>
+        <link>http://jihaixiao.com/2016/12/12/reentrantlock1/</link>
+        <guid isPermaLink="true">http://jihaixiao.com/2016/12/12/reentrantlock1/</guid>
+        
+        <category>Java</category>
+        
+        <category>Spring</category>
+        
+        
+      </item>
+    
+      <item>
+        <title>Spring MVC 4.X 教程（二）</title>
+        <description>&lt;h2 id=&quot;section&quot;&gt;前言&lt;/h2&gt;
+
+&lt;p&gt;这篇博客会介绍Spring MVC 的常用注解，拦截器，自定义全局异常的配置，都是基于注解和java的配置。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;正文&lt;/h2&gt;
+
+&lt;h5 id=&quot;spring-mvc-&quot;&gt;Spring MVC 常用注解&lt;/h5&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;p&gt;@Controller注解&lt;/p&gt;
+
+    &lt;p&gt;在类上声明此注解，表示这是SpringMVC的一个Controller，声明成Spring的一个Bean。DispatcherServlet会自动扫描使用此注解的类，把web请求映射到@RequestMapper注解的方法上。&lt;/p&gt;
+
+    &lt;p&gt;如果声明普通的Bean ,@Service,@Repository,@Controller,@Component都可以，因为@Service,@Repository,@Controller都对@Component做了一次封装，例如@Controller:&lt;/p&gt;
+
+    &lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nd&quot;&gt;@Target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;({&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ElementType&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;TYPE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;})&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;@Retention&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RetentionPolicy&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;RUNTIME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;@Documented&lt;/span&gt;
+&lt;span class=&quot;nd&quot;&gt;@Component&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nd&quot;&gt;@interface&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Controller&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+   &lt;span class=&quot;cm&quot;&gt;/**
+    * The value may indicate a suggestion for a logical component name,
+    * to be turned into a Spring bean in case of an autodetected component.
+    * @return the suggested component name, if any
+    */&lt;/span&gt;
+   &lt;span class=&quot;n&quot;&gt;String&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;default&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+
+    &lt;p&gt;如果想声明Web控制器，只能用@Controller注解。&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;@RequestMapping注解&lt;/p&gt;
+
+    &lt;p&gt;​&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+</description>
+        <pubDate>Wed, 07 Dec 2016 08:00:00 +0800</pubDate>
+        <link>http://jihaixiao.com/2016/12/07/springmvc2/</link>
+        <guid isPermaLink="true">http://jihaixiao.com/2016/12/07/springmvc2/</guid>
+        
+        <category>Java</category>
+        
+        <category>Spring</category>
+        
+        
+      </item>
     
       <item>
         <title>Spring MVC 4.X 教程（一）</title>
