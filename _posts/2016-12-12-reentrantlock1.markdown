@@ -102,5 +102,77 @@ state同步状态AQS提供了3个方法来操作它：
   }
   ```
 
-###### 2：AQS提供的模板方法
+###### 2：AQS提供的可重写方法
+
+|                   方法名称                   |                    描述                    |
+| :--------------------------------------: | :--------------------------------------: |
+|  protected boolean tryAcquire(int arg)   | 独占式获取同步状态，实现该方法需要查询当前状态并判断同步状态是否符合预期，然后再CAS设置同步状态。 |
+|  protected boolean tryRelease(int arg)   |    独占式的释放同步状态，等待获取同步状态的线程将有机会获取同步状态。     |
+| protected int tryAcquireShared(int arg)  |   共享式获取同步状态，返回大于或等于0的值，表示获取成功，反之，获取失败。   |
+| protected boolean tryReleaseShared(int arg) |                共享式释放同步状态。                |
+|  protected boolean isHeldExclusively()   |   当前同步器是否在独占模式下被线程占用，一般该方法表示是否被当前线程占用。   |
+
+###### 3：AQS提供的模板方法
+
+AQS提供的模板方法分为3类：独占式获取与释放同步状态，共享式获取与释放同步状态和查询同步队列中等待线程的状况。
+
+|                   方法名称                   |                    描述                    |
+| :--------------------------------------: | :--------------------------------------: |
+|          void acquire(int arg)           | 独占式的获取同步状态，如果获取成功，则由该方法返回；如果获取失败，则进入同步队列等待，该方法将会调用重写的tryAcquire(int arg) 方法。该方法不响应中断。 |
+|    void acquireInterruptibly(int arg)    | 跟acquire()差不多，只是该方法响应中断，如果当前线程被中断，会抛出InterruptedException异常并返回。 |
+| boolean tryAcquireNanos(int arg,long nanos) | 在acquireInterruptibly()上增加了超时限制，如果当前线程在指定时间内（纳秒级别）没有获取到同步状态，那么就返回false,获取到了返回true。 |
+|       void acquireShared(int arg)        | 共享式的获取同步状态，与独占式的唯一区别，同一时刻可以有多个线程获取到同步状态。该方法不响应中断。 |
+|    void acquireSharedInterruptibly()     |                 该方法响应中断。                 |
+| boolean tryAcquireSharedNanos(int arg,long nanos) | 在acquireSharedInterruptibly()上面增加了超时限制。  |
+|         boolean release(int arg)         | 独占式的释放同步状态，在同步状态释放之后，会将同步队列中第一个节点包含的线程唤醒。 |
+|      boolean releaseShared(int arg)      |               共享式的释放同步状态。                |
+|  Collection<Thread> getQueuedThreads()   |             获取等待在同步队列上的线程集合。             |
+
+###### 4：AQS的同步队列
+
+FIFO队列，如果获取同步状态失败，AQS会将失败线程和等待状态构造成一个Node,然后加入同步队列，同时阻塞当前线程，当同步状态释放时，会唤醒头结点的线程，使其再次尝试获取同步状态。
+
+Node包括当前获取同步状态失败线程的引用，等待状态，前置和后继节点，如下所示：
+
+```java
+static final class Node{
+
+    /**
+     * 
+     * 等待状态，节点上线程的等待状态，详情见表格
+     * 
+     */
+    volatile int waitStatus;
+
+    /**
+     *
+     * 同步队列Node的前置节点，volatile修饰，确保对它的修改能被其他
+     * 线程可见
+     */
+    volatile Node prev;
+
+    /**
+     *
+     * 同步队列的Node的后继节点，volatile修饰，确保对它的修改能被其他
+     * 线程可见
+     */
+    volatile Node next;
+
+    /**
+     *
+     * 获取同步状态失败的线程引用，volatile修饰，确保对它的修改能够对其他线程
+     * 读到
+     */
+    volatile Thread thread;
+
+    /**
+     *
+     * 等待队列中的后继节点，如果当前节点是共享的，那么这个字段将是一个SHARED常量
+     * 也就是说节点类型和等待队列中的后继节点共用同一个字段。
+     *
+     */
+    Node nextWaiter;
+
+}
+```
 
