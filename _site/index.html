@@ -184,6 +184,41 @@
             ">
     			
 <div class="post-preview">
+    <a href="/2016/12/30/finalmemory/">
+        <h2 class="post-title">
+            Java中final关键字的内存语义
+        </h2>
+        
+        <h3 class="post-subtitle">
+             "理解final关键字在并发中的用法 "
+        </h3>
+        
+        <div class="post-content-preview">
+            
+  “Yeah It’s on. ”
+
+
+前言
+
+final关键字修饰的域是不可变的，即在初始化后不能被程序改变，当然，如果final修饰的是对象的引用，不可变是指该对象的引用不可变，这个对象的内部还是可以被修改的。
+
+正文
+
+1：final域的重排序规则
+
+对于final域，编译器和处理器要遵循如下重排序规则：
+
+
+  在构造函数内对一个final域的写入，与随后把这个被构造对象的引用赋...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jihaixiao on December 30, 2016
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
     <a href="/2016/12/12/reentrantlock1/">
         <h2 class="post-title">
             ReentrantLock源码解析
@@ -209,38 +244,6 @@ ReetrantLock同时也是可重入的，而且它有两种形态：公平锁和�
     </a>
     <p class="post-meta">
         Posted by Jihaixiao on December 12, 2016
-    </p>
-</div>
-<hr>
-
-<div class="post-preview">
-    <a href="/2016/12/07/springmvc2/">
-        <h2 class="post-title">
-            Spring MVC 4.X 教程（二）
-        </h2>
-        
-        <h3 class="post-subtitle">
-             "how to use Interceptor and so on "
-        </h3>
-        
-        <div class="post-content-preview">
-            前言
-
-这篇博客会介绍Spring MVC 的常用注解，拦截器，自定义全局异常的配置，都是基于注解和java的配置。
-
-正文
-
-Spring MVC 常用注解
-
-
-  
-    @Controller注解
-
-    在类上声明此注解，表示这是SpringMVC的一个Controller，声明成Spring的一个Bean。DispatcherServlet会自动扫描使用此注解的类，把web请求...
-        </div>
-    </a>
-    <p class="post-meta">
-        Posted by Jihaixiao on December 7, 2016
     </p>
 </div>
 <hr>
@@ -370,9 +373,13 @@ JMM在程序猿的需求跟编译器，处理器之间的需求做了一个比�
                             
                         
                             
+                                <a href="/tags/#并发编程" title="并发编程" rel="2">
+                                    并发编程
+                                </a>
+                            
                         
                             
-                                <a href="/tags/#Spring" title="Spring" rel="3">
+                                <a href="/tags/#Spring" title="Spring" rel="2">
                                     Spring
                                 </a>
                             
