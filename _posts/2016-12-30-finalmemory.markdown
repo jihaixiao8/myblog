@@ -99,6 +99,54 @@ public class FinalExample {
 
 读final域的重排序规则可以确保：在读一个对象的final域之前，一定会先读包含这个final域的对象的引用。
 
+### 4:final域是引用类型
+
+```java
+public class FinalReferenceExample {
+
+    final int[] intArray;               //final是引用类型
+
+    static FinalReferenceExample obj;
+
+    public FinalReferenceExample() {    //构造函数
+        intArray = new int[1];          //操作1
+        intArray[0]=1;                  //操作2
+    }
+
+    public static void writeOne(){              //写线程A执行
+        obj = new FinalReferenceExample();      //3
+    }
+
+    public static void writeTwo(){              //写线程B执行
+        obj.intArray[0] = 2;                    //4
+    }
+
+    public static void reader(){                //读线程C执行
+        if (obj != null){                       //5
+            int temp1 = obj.intArray[0];        //6
+        }
+    }
+
+}
+```
+
+上面的例子：
+
+​	intArray是引用类型的，它引用一个int类型的数组引用，对于引用类型，final域的写重排序对编译器和处理器有如下约束：
+
+* 在构造函数内对一个final引用的对象的成员域的写入，与随后在构造函数外把这个被构造的对象的引用赋给一个引用变量，这两个操作不能重排序。
+
+如下图是一个可能的执行顺序，来分析下：
+
+![图片3](http://ogu2tysfa.bkt.clouddn.com/33.png)
+
+上面的操作1是对final域的写，2是对final的引用的对象的成员域的写，3是把被构造对象的引用赋给引用变量。
+
+前面说过1跟3不能重排序，2和3也不能重排序。（个人认为1和2应该是可以重排序的，对程序执行结果没有影响）
+
+JMM可以确保线程C可以正确的读到线程A在构造函数内对final引用的对象的域的写入，即能看到数组下标为0的值是1，而线程B对数组元素的写入，线程C可能能读到，也可能读不到。因为JMM不保证线程B的写入对线程C可见，可以用volatile或者Lock解决，来确保内存可见性。
 
 
-> 未完待续....
+
+
+

@@ -5,8 +5,8 @@
     <description>关于前端与设计、黑客与画家 | 黄玄，Web &amp; Mobile Lover，Front-End Engineer，UX Designer | 这里是 @Hux黄玄 的个人博客，与你一起发现更大的世界。</description>
     <link>http://jihaixiao.com/</link>
     <atom:link href="http://jihaixiao.com/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Fri, 30 Dec 2016 18:33:37 +0800</pubDate>
-    <lastBuildDate>Fri, 30 Dec 2016 18:33:37 +0800</lastBuildDate>
+    <pubDate>Tue, 03 Jan 2017 18:37:40 +0800</pubDate>
+    <lastBuildDate>Tue, 03 Jan 2017 18:37:40 +0800</lastBuildDate>
     <generator>Jekyll v3.1.6</generator>
     
       <item>
@@ -107,9 +107,55 @@
 
 &lt;p&gt;读final域的重排序规则可以确保：在读一个对象的final域之前，一定会先读包含这个final域的对象的引用。&lt;/p&gt;
 
-&lt;blockquote&gt;
-  &lt;p&gt;未完待续….&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;h3 id=&quot;final-3&quot;&gt;4:final域是引用类型&lt;/h3&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;FinalReferenceExample&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;intArray&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;               &lt;span class=&quot;c1&quot;&gt;//final是引用类型&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FinalReferenceExample&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;FinalReferenceExample&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;//构造函数&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;intArray&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;];&lt;/span&gt;          &lt;span class=&quot;c1&quot;&gt;//操作1&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;intArray&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;                  &lt;span class=&quot;c1&quot;&gt;//操作2&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;writeOne&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;              &lt;span class=&quot;c1&quot;&gt;//写线程A执行&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;FinalReferenceExample&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;      &lt;span class=&quot;c1&quot;&gt;//3&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;writeTwo&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;              &lt;span class=&quot;c1&quot;&gt;//写线程B执行&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;intArray&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;                    &lt;span class=&quot;c1&quot;&gt;//4&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;reader&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(){&lt;/span&gt;                &lt;span class=&quot;c1&quot;&gt;//读线程C执行&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;!=&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;null&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;){&lt;/span&gt;                       &lt;span class=&quot;c1&quot;&gt;//5&lt;/span&gt;
+            &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;temp1&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;intArray&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;];&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;//6&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;上面的例子：&lt;/p&gt;
+
+&lt;p&gt;​	intArray是引用类型的，它引用一个int类型的数组引用，对于引用类型，final域的写重排序对编译器和处理器有如下约束：&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;在构造函数内对一个final引用的对象的成员域的写入，与随后在构造函数外把这个被构造的对象的引用赋给一个引用变量，这两个操作不能重排序。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;如下图是一个可能的执行顺序，来分析下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://ogu2tysfa.bkt.clouddn.com/33.png&quot; alt=&quot;图片3&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;上面的操作1是对final域的写，2是对final的引用的对象的成员域的写，3是把被构造对象的引用赋给引用变量。&lt;/p&gt;
+
+&lt;p&gt;前面说过1跟3不能重排序，2和3也不能重排序。（个人认为1和2应该是可以重排序的，对程序执行结果没有影响）&lt;/p&gt;
+
+&lt;p&gt;JMM可以确保线程C可以正确的读到线程A在构造函数内对final引用的对象的域的写入，即能看到数组下标为0的值是1，而线程B对数组元素的写入，线程C可能能读到，也可能读不到。因为JMM不保证线程B的写入对线程C可见，可以用volatile或者Lock解决，来确保内存可见性。&lt;/p&gt;
+
 </description>
         <pubDate>Fri, 30 Dec 2016 08:00:00 +0800</pubDate>
         <link>http://jihaixiao.com/2016/12/30/finalmemory/</link>
