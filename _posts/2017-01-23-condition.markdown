@@ -114,3 +114,5 @@ public class ConditionUseCase {
 **结束执行了AThread-0**<br/>
 
 可以看出，A先执行，然后释放了锁（此处在Condition源码中有体现），一直在等待，然后B线程启动，然后B线程调用了sigal()方法，唤醒了A，然后A才执行结束了。这样使用Condition接口就可以实现线程之间互相协调，等待和唤醒功能。（ArrayBlockingQueue 有界阻塞队列就是利用Condition去实现的）。
+
+> 未完待续...
