@@ -146,7 +146,59 @@ public class FinalReferenceExample {
 
 JMM可以确保线程C可以正确的读到线程A在构造函数内对final引用的对象的域的写入，即能看到数组下标为0的值是1，而线程B对数组元素的写入，线程C可能能读到，也可能读不到。因为JMM不保证线程B的写入对线程C可见，可以用volatile或者Lock解决，来确保内存可见性。
 
+### 5:final引用不能从构造函数中溢出
+
+前面提到：写final域的重排序规则可以保证，在引用变量为所有线程可见之前，该引用变量所指向的对象的final域一定都已经在构造函数中正确初始化了。其实要得到这个效果，还有一点必须保证：在构造函数内部，不能让被构造对象的引用为其他线程可见，也就是说对象引用不能再构造函数中溢出。看如下代码：
+
+```java
+public class FinalReferenceEscapeExample {
+
+    final int i;
+
+    static FinalReferenceEscapeExample obj;
+
+    public FinalReferenceEscapeExample(){
+        i=1;                            //1 写final域
+        obj = this;                     //2 this引用在此“逃逸”
+    }
+
+    public static void writer() {
+        new FinalReferenceEscapeExample();
+    }
+
+    public static void reader(){
+        if (obj != null) {              //3
+            int temp = obj.i;           //4
+        }
+    }
+
+}
+```
+
+如果A线程调用writer方法，此时调用构造函数，2操作其实就让被构造对象的引用逃逸了，而且，1和2其实是可以重排序的，所以如果1,2重排序，此时B线程调用reader方法，发现obj不是空，然后去读final域 i的值，但是很可能读到的i的值并未初始化。如下图：
+
+![](http://ogu2tysfa.bkt.clouddn.com/44.png)
+
+### 6:final语义在处理器的实现
+
+以X86处理器为例，说明final域在处理器中的实现。
+
+上面说过，写final域的重排序规则要求在final域写之后，构造函数return之前，插入一个StoreStore屏障，读final域的重排序规则要求编译器在读final域的操作之前插入一个LoadLoad屏障。
+
+由于X86不会对写-写进行重排序，所以在X86处理器中，写final域需要的StoreStore屏障会被省略掉，由于X86不会对存在间接依赖关系的操作做重排序，所以读final域的LoadLoad屏障也会被省略，所以X86不会对final域的读写插入任何屏障。
+
+### 7:JSR-133为什么要增强final的语义
+
+在旧的Java内存模型中，最严重的一个BUG就是线程可能会看到final域的值会改变，例如一个线程当前看到的一个final int的值是0（还未被初始化），过一段时间该线程再读的话final域的值可能变成1了（被某个线程初始化了），最常见的的例子就是在旧的JAVA内存模型中，String的值可能会改变（[例子][1]）
+
+为了修补这个漏洞，JSR-133专家组增强了final语义，通过final域增加写读重排序规则，可以为java程序猿提供初始化安全保证：只要对象是正确构造的（被构造对象的引用在构造过程中没有逃逸），那么不需要同步（lock和volatile），就可以保证任意线程都能看到这个final域在构造函数中被初始化的值。
 
 
 
 
+
+
+
+
+
+[1]:https://www.cs.umd.edu/users/pugh/java/memoryModel/jsr-133-faq.html
