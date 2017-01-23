@@ -52,7 +52,9 @@ public class ConditionUseCase {
         aThread.start();
         //2:睡1秒，确保A线程肯定现在B线程之前启动。
         Thread.sleep(1000);
-        //3:启动B线程，让B线程获取到锁，然后调用sigal()方法，去唤醒在等待队列中的线程（此处只有A调用了await()，所以只有A进入等待队列，等待被唤醒）
+        //3:启动B线程，让B线程获取到锁，然后调用sigal()方法，
+        //去唤醒在等待队列中的线程（此处只有A调用了await()，
+      	//所以只有A进入等待队列，等待被唤醒）
         BThread bThread = new BThread();
         bThread.start();
     }
