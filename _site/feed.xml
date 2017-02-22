@@ -5,9 +5,86 @@
     <description>每天进步一点点</description>
     <link>http://jihaixiao.com/</link>
     <atom:link href="http://jihaixiao.com/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 24 Jan 2017 17:16:56 +0800</pubDate>
-    <lastBuildDate>Tue, 24 Jan 2017 17:16:56 +0800</lastBuildDate>
+    <pubDate>Wed, 22 Feb 2017 15:38:48 +0800</pubDate>
+    <lastBuildDate>Wed, 22 Feb 2017 15:38:48 +0800</lastBuildDate>
     <generator>Jekyll v3.1.6</generator>
+    
+      <item>
+        <title>CentOS7管理防火墙和打开端口</title>
+        <description>&lt;h2 id=&quot;section&quot;&gt;正文&lt;/h2&gt;
+
+&lt;h3 id=&quot;iptables-service&quot;&gt;1：安装iptables-service，打开防火墙&lt;/h3&gt;
+
+&lt;p&gt;刚刚初始化的CentOS系统里面，在/etc/sysconfig目录下面是没有iptables文件的，所以想往里面写入需要先把它初始化出来。&lt;/p&gt;
+
+&lt;p&gt;如果你在未初始化之前直接使用这个命令，打开防火墙：&lt;/p&gt;
+
+&lt;div class=&quot;language-xml highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;service iptables start
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;就会报错：Failed to restart iptables.service: Unit iptables.service failed to load: No such file or directory.&lt;/p&gt;
+
+&lt;p&gt;所以在想使用这个命令之前，先安装下iptables-services&lt;/p&gt;
+
+&lt;ol&gt;
+  &lt;li&gt;
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;yum install iptables-services
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;设置开机启动：&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;systemctl enable iptables
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;这时候service iptables命令就可以正常使用了&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;service iptables [stop|start|restart]
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;使用save命令，即可在/etc/sysconfig命令下初始化iptables文件了&lt;/p&gt;
+
+    &lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;service iptables save
+&lt;/code&gt;&lt;/pre&gt;
+    &lt;/div&gt;
+  &lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&quot;section-1&quot;&gt;2：打开某个固定端口&lt;/h3&gt;
+
+&lt;p&gt;防火墙开启后，如果想开启某个端口，例如80端口（nginx默认端口）&lt;/p&gt;
+
+&lt;p&gt;使用如下命令可以打开，打开后可以使用telnet测试端口连通性，或者浏览器访问&lt;/p&gt;
+
+&lt;p&gt;打开某个固定端口命令如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sbin/iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;h3 id=&quot;centos7&quot;&gt;3：CentOS7下打开关闭防火墙&lt;/h3&gt;
+
+&lt;p&gt;CentOS7下还可以使用如下命令打开，关闭，禁用防火墙&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;systemctl [start][stop][mask] firewalld
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+</description>
+        <pubDate>Wed, 22 Feb 2017 08:00:00 +0800</pubDate>
+        <link>http://jihaixiao.com/2017/02/22/linuxfirewall/</link>
+        <guid isPermaLink="true">http://jihaixiao.com/2017/02/22/linuxfirewall/</guid>
+        
+        <category>Linux</category>
+        
+        
+      </item>
     
       <item>
         <title>Java Condition使用与源码分析</title>

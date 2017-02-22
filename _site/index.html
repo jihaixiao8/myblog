@@ -184,6 +184,38 @@
             ">
     			
 <div class="post-preview">
+    <a href="/2017/02/22/linuxfirewall/">
+        <h2 class="post-title">
+            CentOS7管理防火墙和打开端口
+        </h2>
+        
+        <h3 class="post-subtitle">
+             "打开关闭防火墙 "
+        </h3>
+        
+        <div class="post-content-preview">
+            正文
+
+1：安装iptables-service，打开防火墙
+
+刚刚初始化的CentOS系统里面，在/etc/sysconfig目录下面是没有iptables文件的，所以想往里面写入需要先把它初始化出来。
+
+如果你在未初始化之前直接使用这个命令，打开防火墙：
+
+service iptables start
+
+
+
+就会报错：Failed to restart iptables.service:...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jihaixiao on February 22, 2017
+    </p>
+</div>
+<hr>
+
+<div class="post-preview">
     <a href="/2017/01/23/condition/">
         <h2 class="post-title">
             Java Condition使用与源码分析
@@ -381,6 +413,8 @@ JMM在程序猿的需求跟编译器，处理器之间的需求做了一个比�
                                 <a href="/tags/#Spring" title="Spring" rel="2">
                                     Spring
                                 </a>
+                            
+                        
                             
                         
                     </div>
