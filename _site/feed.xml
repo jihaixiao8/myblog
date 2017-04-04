@@ -3,11 +3,128 @@
   <channel>
     <title>JiHaiXiao Blog</title>
     <description>每天进步一点点</description>
-    <link>http://jihaixiao.com/</link>
-    <atom:link href="http://jihaixiao.com/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 22 Feb 2017 15:38:48 +0800</pubDate>
-    <lastBuildDate>Wed, 22 Feb 2017 15:38:48 +0800</lastBuildDate>
-    <generator>Jekyll v3.1.6</generator>
+    <link>http://localhost:5001/</link>
+    <atom:link href="http://localhost:5001/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Tue, 04 Apr 2017 18:45:47 +0800</pubDate>
+    <lastBuildDate>Tue, 04 Apr 2017 18:45:47 +0800</lastBuildDate>
+    <generator>Jekyll v3.3.1</generator>
+    
+      <item>
+        <title>讲讲线程间的通信</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;“Yeah It’s on. ”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;前言&lt;/h2&gt;
+
+&lt;p&gt;线程之间都各自有各自的工作空间，自己的工作副本，如果互相之间不通信，自己搞自己的事，那么价值一般般，如果多个线程能够相互通信，互相配合去完成工作，这就明显提升了效率。&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;正文&lt;/h2&gt;
+
+&lt;h4 id=&quot;volatilesynchronized&quot;&gt;1.volatile和synchronized关键字&lt;/h4&gt;
+
+&lt;p&gt;这两个java提供的关键字可以用作线程间的通信，先说volatile：&lt;/p&gt;
+
+&lt;p&gt;java支持多个线程同时访问一个成员变量，但是在现代计算机多核处理器中，每个线程都拥有这个成员变量的一份自己的拷贝（为了提高程序运行效率），也就说，在程序运行期间，线程读到的成员变量并不一定是新的，例如A线程读变量X，存放到自己的工作内存中一份副本，但后来X被线程B改变了值，A并不知道，还用自己的工作内存的副本继续计算，那就会算错了。&lt;/p&gt;
+
+&lt;p&gt;而volatile关键字则可以起到让A,B线程通信的作用：被volatile修饰的成员变量会告知所有线程对X变量的使用要从主内存中读取，而任何线程对变量X的修改必须同步刷新到主内存中去，它能保证所有线程对变量X的可见性。&lt;/p&gt;
+
+&lt;p&gt;例如有个布尔类型的开关成员变量：boolean swtich = true。某个线程对它执行关闭操作，swtich = false;这儿涉及到多个线程的访问，所以要设置成volatile boolean swtich = true  才能保证结果的正确性，因为这么一弄，所有线程对swtich变量的访问和修改都需要以主内存为准。但切勿滥用volatile，它只是保证可见性的一种方式，不能保证操作原子性，而且会对程序性能有所损耗。&lt;/p&gt;
+
+&lt;p&gt;再来说说synchronized关键字：&lt;/p&gt;
+
+&lt;p&gt;它修饰在方法上或者代码块上，用来保证多个线程在同一时刻只有一个线程可以访问被修饰的方法或者代码块，可以保证线程对变量访问的可见性和排他性。&lt;/p&gt;
+
+&lt;p&gt;看如下代码：&lt;/p&gt;
+
+&lt;div class=&quot;language-java highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;package&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;com&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;jd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;jhx&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;concurrent&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;;&lt;/span&gt;
+
+&lt;span class=&quot;cm&quot;&gt;/**
+ * Created by jihaixiao on 2017/4/4.
+ */&lt;/span&gt;
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;nc&quot;&gt;Synchronized&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;main&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;String&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;args&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;c1&quot;&gt;//对Synchronized.class对象加锁&lt;/span&gt;
+        &lt;span class=&quot;kd&quot;&gt;synchronized&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Synchronized&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            &lt;span class=&quot;c1&quot;&gt;//静态同步方法，对Synchronized.class对象加锁&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;();&lt;/span&gt;
+        &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;synchronized&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;m&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;System&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;na&quot;&gt;println&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;123&quot;&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;我们可以到编译的class文件目录下 使用，javap -v Synchronized.class命令，部分输出如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;public static void main(java.lang.String[]);
+descriptor: ([Ljava/lang/String;)V
+flags: ACC_PUBLIC, ACC_STATIC
+Code:
+  stack=2, locals=3, args_size=1
+     0: ldc           #2                  // class com/jd/jhx/concurrent/Synchronized
+     2: dup
+     3: astore_1
+     4: monitorenter
+     5: invokestatic  #3                  // Method m:()V
+     8: aload_1
+     9: monitorexit
+    10: goto          18
+    13: astore_2
+    14: aload_1
+    15: monitorexit
+    16: aload_2
+    17: athrow
+    18: return
+  Exception table:
+     from    to  target type
+         5    10    13   any
+        13    16    13   any
+  LineNumberTable:
+    line 9: 0
+    line 10: 5
+    line 11: 8
+    line 12: 18
+  LocalVariableTable:
+    Start  Length  Slot  Name   Signature
+        0      19     0  args   [Ljava/lang/String;
+  StackMapTable: number_of_entries = 2
+    frame_type = 255 /* full_frame */
+      offset_delta = 13
+      locals = [ class &quot;[Ljava/lang/String;&quot;, class java/lang/Object ]
+      stack = [ class java/lang/Throwable ]
+    frame_type = 250 /* chop */
+      offset_delta = 4
+
+public static synchronized void m();
+descriptor: ()V
+flags: ACC_PUBLIC, ACC_STATIC, ACC_SYNCHRONIZED
+Code:
+  stack=2, locals=0, args_size=0
+&lt;/code&gt;&lt;/pre&gt;
+&lt;/div&gt;
+
+&lt;p&gt;可以看到，JVM对于同步块使用了monitorenter 和monitorexit命令去实现的，对于同步方法则依靠方法修饰符上的ACC_SYNCHRONIZED完成的。不管那种，本质都是对一个对象的监视器进行获取，而这个获取过程是排他的，也就是说同一个时刻，只有一个线程能获取到由sysnchronized所保护的对象的监视器。而没有获取到监视器的线程将进入BLOCKED状态，被阻塞到同步方法或同步块的入口处。&lt;/p&gt;
+
+&lt;p&gt;synchronized通过这种监视器的方式，实现线程的通信，当A，B线程尝试获取变量X的监视器的时候，A线程获取到了，执行代码块，B线程阻塞，进入同步队列等待，当A执行完，monitorexit命令执行后，唤醒等待队列里的B线程，B线程被唤醒后，再次去尝试获取X的监视器。&lt;/p&gt;
+
+&lt;h4 id=&quot;section-2&quot;&gt;2.线程等待/通知机制&lt;/h4&gt;
+
+</description>
+        <pubDate>Mon, 03 Apr 2017 08:00:00 +0800</pubDate>
+        <link>http://localhost:5001/2017/04/03/threadnotice/</link>
+        <guid isPermaLink="true">http://localhost:5001/2017/04/03/threadnotice/</guid>
+        
+        <category>Java</category>
+        
+        <category>并发</category>
+        
+        
+      </item>
     
       <item>
         <title>CentOS7管理防火墙和打开端口</title>
@@ -78,8 +195,8 @@
 
 </description>
         <pubDate>Wed, 22 Feb 2017 08:00:00 +0800</pubDate>
-        <link>http://jihaixiao.com/2017/02/22/linuxfirewall/</link>
-        <guid isPermaLink="true">http://jihaixiao.com/2017/02/22/linuxfirewall/</guid>
+        <link>http://localhost:5001/2017/02/22/linuxfirewall/</link>
+        <guid isPermaLink="true">http://localhost:5001/2017/02/22/linuxfirewall/</guid>
         
         <category>Linux</category>
         
@@ -517,8 +634,8 @@
 &lt;/blockquote&gt;
 </description>
         <pubDate>Mon, 23 Jan 2017 08:00:00 +0800</pubDate>
-        <link>http://jihaixiao.com/2017/01/23/condition/</link>
-        <guid isPermaLink="true">http://jihaixiao.com/2017/01/23/condition/</guid>
+        <link>http://localhost:5001/2017/01/23/condition/</link>
+        <guid isPermaLink="true">http://localhost:5001/2017/01/23/condition/</guid>
         
         <category>Java</category>
         
@@ -723,8 +840,8 @@
 
 </description>
         <pubDate>Fri, 30 Dec 2016 08:00:00 +0800</pubDate>
-        <link>http://jihaixiao.com/2016/12/30/finalmemory/</link>
-        <guid isPermaLink="true">http://jihaixiao.com/2016/12/30/finalmemory/</guid>
+        <link>http://localhost:5001/2016/12/30/finalmemory/</link>
+        <guid isPermaLink="true">http://localhost:5001/2016/12/30/finalmemory/</guid>
         
         <category>Java</category>
         
@@ -969,8 +1086,8 @@
 
 </description>
         <pubDate>Mon, 12 Dec 2016 08:00:00 +0800</pubDate>
-        <link>http://jihaixiao.com/2016/12/12/reentrantlock1/</link>
-        <guid isPermaLink="true">http://jihaixiao.com/2016/12/12/reentrantlock1/</guid>
+        <link>http://localhost:5001/2016/12/12/reentrantlock1/</link>
+        <guid isPermaLink="true">http://localhost:5001/2016/12/12/reentrantlock1/</guid>
         
         <category>Java</category>
         
@@ -1196,8 +1313,8 @@
 
 </description>
         <pubDate>Thu, 24 Nov 2016 08:00:00 +0800</pubDate>
-        <link>http://jihaixiao.com/2016/11/24/springmvc1/</link>
-        <guid isPermaLink="true">http://jihaixiao.com/2016/11/24/springmvc1/</guid>
+        <link>http://localhost:5001/2016/11/24/springmvc1/</link>
+        <guid isPermaLink="true">http://localhost:5001/2016/11/24/springmvc1/</guid>
         
         <category>Java</category>
         
@@ -1298,8 +1415,8 @@
 
 </description>
         <pubDate>Thu, 17 Nov 2016 20:00:00 +0800</pubDate>
-        <link>http://jihaixiao.com/2016/11/17/happenbefore/</link>
-        <guid isPermaLink="true">http://jihaixiao.com/2016/11/17/happenbefore/</guid>
+        <link>http://localhost:5001/2016/11/17/happenbefore/</link>
+        <guid isPermaLink="true">http://localhost:5001/2016/11/17/happenbefore/</guid>
         
         <category>Java</category>
         

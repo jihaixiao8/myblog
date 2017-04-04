@@ -19,7 +19,7 @@
     <link rel="shortcut icon" href="/img/favicon.ico">
     
     <!-- Canonical URL -->
-    <link rel="canonical" href="http://jihaixiao.com/">
+    <link rel="canonical" href="http://localhost:5001/">
 
     <!-- Bootstrap Core CSS -->
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -183,6 +183,40 @@
                 postlist-container
             ">
     			
+<div class="post-preview">
+    <a href="/2017/04/03/threadnotice/">
+        <h2 class="post-title">
+            讲讲线程间的通信
+        </h2>
+        
+        <h3 class="post-subtitle">
+             "线程与线程之间互相独立，那么他们是靠什么互相通信的呢"
+        </h3>
+        
+        <div class="post-content-preview">
+            
+  “Yeah It’s on. ”
+
+
+前言
+
+线程之间都各自有各自的工作空间，自己的工作副本，如果互相之间不通信，自己搞自己的事，那么价值一般般，如果多个线程能够相互通信，互相配合去完成工作，这就明显提升了效率。
+
+正文
+
+1.volatile和synchronized关键字
+
+这两个java提供的关键字可以用作线程间的通信，先说volatile：
+
+java支持多个线程同时访问一个成...
+        </div>
+    </a>
+    <p class="post-meta">
+        Posted by Jihaixiao on April 3, 2017
+    </p>
+</div>
+<hr>
+
 <div class="post-preview">
     <a href="/2017/02/22/linuxfirewall/">
         <h2 class="post-title">
@@ -398,7 +432,7 @@ JMM在程序猿的需求跟编译器，处理器之间的需求做了一个比�
                     <div class="tags">
                         
                             
-                                <a href="/tags/#Java" title="Java" rel="5">
+                                <a href="/tags/#Java" title="Java" rel="6">
                                     Java
                                 </a>
                             
@@ -413,6 +447,8 @@ JMM在程序猿的需求跟编译器，处理器之间的需求做了一个比�
                                 <a href="/tags/#Spring" title="Spring" rel="2">
                                     Spring
                                 </a>
+                            
+                        
                             
                         
                             
