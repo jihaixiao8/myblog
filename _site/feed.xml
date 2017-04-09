@@ -5,9 +5,37 @@
     <description>每天进步一点点</description>
     <link>http://localhost:5001/</link>
     <atom:link href="http://localhost:5001/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 04 Apr 2017 22:07:04 +0800</pubDate>
-    <lastBuildDate>Tue, 04 Apr 2017 22:07:04 +0800</lastBuildDate>
+    <pubDate>Sun, 09 Apr 2017 22:16:03 +0800</pubDate>
+    <lastBuildDate>Sun, 09 Apr 2017 22:16:03 +0800</lastBuildDate>
     <generator>Jekyll v3.3.1</generator>
+    
+      <item>
+        <title>fork/join框架</title>
+        <description>&lt;blockquote&gt;
+  &lt;p&gt;“Yeah It’s on. ”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;section&quot;&gt;前言&lt;/h2&gt;
+
+&lt;p&gt;JDK1.7后，提供了一个完善的任务并行框架—Fork/Join。&lt;/p&gt;
+
+&lt;p&gt;现实中有很多任务，如果单线程执行，效率很低，但是可以对大的任务拆分，拆分开来的小任务互不影响，多个线程并行执行，执行完合并结果，这么明显提高了效率。例如：有一张数据库的表，我们想把数据库这张表的数据抽出来，全量写到redis里，如果每次分页查一页数据，然后单线程写redis，效率一般。我们可以考虑用并行任务框架，每次查出一页数据，对这页数据拆分任务，并行执行的去写redis，这么执行起来会比以前最多快N倍。（N是拆分的粒度）&lt;/p&gt;
+
+&lt;h2 id=&quot;section-1&quot;&gt;正文&lt;/h2&gt;
+
+&lt;h4 id=&quot;forkjoin&quot;&gt;1.Fork/Join应用&lt;/h4&gt;
+
+</description>
+        <pubDate>Sat, 08 Apr 2017 08:00:00 +0800</pubDate>
+        <link>http://localhost:5001/2017/04/08/forkandjoin/</link>
+        <guid isPermaLink="true">http://localhost:5001/2017/04/08/forkandjoin/</guid>
+        
+        <category>Java</category>
+        
+        <category>并发编程</category>
+        
+        
+      </item>
     
       <item>
         <title>讲讲线程间的通信</title>
