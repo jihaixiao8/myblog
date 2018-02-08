@@ -408,6 +408,8 @@ private Runnable getTask() {
       	//如果都不属于上面的情况，继续。
         if ((wc > maximumPoolSize || (timed && timedOut))
             && (wc > 1 || workQueue.isEmpty())) {
+          	//如果工作线程数超过corePoolSize，而且空闲时间超过keepAliveTime，返回null，上游拿到null后跳出循环，最终导致整个Worker的run方法执行完毕，线程销毁。
+          //否则工作线程会一直监听队列，获取新任务，Worker也会一直存活。
             if (compareAndDecrementWorkerCount(c))
                 return null;
             continue;
