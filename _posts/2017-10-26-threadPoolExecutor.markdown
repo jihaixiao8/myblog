@@ -209,7 +209,9 @@ public void execute(Runnable command) {
       //增加线程不成功的情况，重新获取线程池ctl(状态+线程数)
         c = ctl.get();
     }
-  	//检查线程池是不是运行状态，然后把任务放到等待队列里
+  	//情况1：线程池是RUNNING态，任务放入队列成功，则进入if块。
+  	//情况2：线程池是RUNNING态，但是任务放入队列失败，表示任务队列满了，不进入if块。
+  	//情况3：线程池是非RUNNING态，不进入if块。
     if (isRunning(c) && workQueue.offer(command)) {
       	//再次获取线程池状态
         int recheck = ctl.get();
@@ -220,11 +222,11 @@ public void execute(Runnable command) {
         else if (workerCountOf(recheck) == 0)
             addWorker(null, false);
     }
-  	/*
-  	如果我们没法把任务放入工作队列，那么就尝试新添加一个线程，假如添加成功,说明线程池的其他地方有资源释放，
-  	假如不成功，说明线程池已经关闭或者饱和了，我们就调用饱和策略进行处理。
-  	*/
+	//走到这儿，表示出现了情况2和情况3
+  	//情况2下，在工作队列已满的情况下，如果工作线程数小于maximumPoolSize,尝试添加一个Worker，大于的话当然就添加失败了
+  	//情况3下，同样尝试去添加一个新的Worker
     else if (!addWorker(command, false))
+      	//添加新Worker失败，执行配置的饱和策略，默认是丢弃
         reject(command);
 }
 ```
@@ -240,9 +242,9 @@ private boolean addWorker(Runnable firstTask, boolean core) {
 
         //如果状态 > SHUTDOWN 直接返回false，此时不执行新任务，也不执行阻塞队列的任务
       	//但是 在 = SHUTDOWN的状态，不会处理新任务，还是可以继续执行在阻塞队列的任务
-      	//如果状态 = SHUTDOWN 而且 firstTask 为 null 直接返回false
-      	//如果状态 = SHUTDOWN 而且 firstTask 不为 null 而且阻塞队列为空 直接返回false
-      	//综上所述就是如果状态>SHUTDOWN,则不会处理当前任务，返回false，当=SHUTDOWN时，如果任务为null也不会处理，返回false，或者是阻塞队列已经被执行完成了，也是不会处理当前任务的，同样返回false
+      	//如果状态 = SHUTDOWN 而且 firstTask 不为 null 直接返回false
+      	//如果状态 = SHUTDOWN 而且 firstTask 为 null 而且阻塞队列为空 直接返回false
+      	//综上所述就是如果状态>SHUTDOWN,则不会处理当前任务，返回false，当=SHUTDOWN时，如果任务不为null也不会处理，返回false，或者是阻塞队列已经被执行完成了，也是不会处理当前任务的，同样返回false
         if (rs >= SHUTDOWN &&
             ! (rs == SHUTDOWN &&
                firstTask == null &&
