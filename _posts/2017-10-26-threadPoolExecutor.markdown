@@ -191,7 +191,7 @@ private volatile int maximumPoolSize;
 
 #### 4: 重要方法解析
 
-###### 1:execute(Runnable command)方法
+###### 4.1:execute(Runnable command)方法
 
 ```Java
 public void execute(Runnable command) {
@@ -229,7 +229,7 @@ public void execute(Runnable command) {
 }
 ```
 
-###### 2:addWorker方法
+###### 4.2:addWorker方法
 
 ```java
 private boolean addWorker(Runnable firstTask, boolean core) {
@@ -614,4 +614,3 @@ public List<Runnable> shutdownNow() {
     return tasks;
 }
 ```
-
